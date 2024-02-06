@@ -9,28 +9,28 @@ const account1 = {
   owner: 'Woo Dong Jin Co.',
   movements: [200, 450, -400, 3000, -650, -130, 70, 1300],
   interestRate: 1.2, // %
-  pin: 1111,
+  pin: 1111
 };
 
 const account2 = {
   owner: 'Jessica Davis',
   movements: [5000, 3400, -150, -790, -3210, -1000, 8500, -30],
   interestRate: 1.5,
-  pin: 2222,
+  pin: 2222
 };
 
 const account3 = {
   owner: 'Steven Thomas Williams',
   movements: [200, -200, 340, -300, -20, 50, 400, -460],
   interestRate: 0.7,
-  pin: 3333,
+  pin: 3333
 };
 
 const account4 = {
   owner: 'Sarah Smith',
   movements: [430, 1000, 700, 50, 90],
   interestRate: 1,
-  pin: 4444,
+  pin: 4444
 };
 
 const accounts = [account1, account2, account3, account4];
@@ -62,9 +62,27 @@ const inputCloseUsername = document.querySelector('.form__input--user');
 const inputClosePin = document.querySelector('.form__input--pin');
 
 // [200, 450, -400, 3000, -650, -130, 70, 1300],
-const displayMovements = function (movements) {
+let sortToggle = true;
+const sortBy = function() {
+  let newMov;
+  if (sortToggle) {
+     newMov = account1.movements.slice().sort(function(a, b) {
+      return b - a;
+    });
+    sortToggle = false;
+  } else {
+    newMov = account1.movements;
+    sortToggle = true;
+  }
+
+  document.querySelectorAll('.movements__row')
+    .forEach( v => v.remove());
+  // document.createElement('div').className ='movements';
+  displayMovements(newMov);
+}
+const displayMovements = function(movements) {
   const movementsEl = document.querySelector('.movements');
-  const selectDeWith = (v) =>  v > 0 ? 'deposit' : 'withdrawal';
+  const selectDeWith = (v) => v > 0 ? 'deposit' : 'withdrawal';
 
   movements.forEach((mov, idx, arr) => {
     const movementsRow = document.createElement('div');
@@ -76,9 +94,9 @@ const displayMovements = function (movements) {
     const movementsDate = document.createElement('div');
     movementsDate.className = 'movements__date';
 
-    movementsType.classList.add(`movements__type--${selectDeWith(mov)}`)
+    movementsType.classList.add(`movements__type--${selectDeWith(mov)}`);
     movementsType.innerHTML = `${idx + 1} ${selectDeWith(mov)}`;
-    movementsDate.innerHTML = `${new Date().getDate() - (idx +1)} DAYS AGO`
+    movementsDate.innerHTML = `${new Date().getDate() - (idx + 1)} DAYS AGO`;
     movementsValue.innerHTML = `${Math.abs(mov)} ${selectDeWith(mov)}`;
 
     movementsEl.appendChild(movementsRow);
@@ -86,13 +104,29 @@ const displayMovements = function (movements) {
     movementsRow.appendChild(movementsType);
     movementsRow.appendChild(movementsDate);
     movementsRow.appendChild(movementsValue);
-  })
+  });
 };
 
-displayMovements(account1.movements)
+displayMovements(account1.movements);
+
+const totalBalance = account1.movements.reduce((acc, curr) => acc + curr);
+
 document.querySelector('.date').innerHTML = new Date().toLocaleDateString();
 document.querySelector('.balance__value').innerHTML =
-     `${account1.movements.reduce((acc, curr) => acc + curr)} €`;
+  `${totalBalance} €`;
+const summaryMovements = function(movements) {
+  const summaryValue = document.querySelector('.summary__value');
+  let deposit = 0;
+  let withdrawal = 0;
+  movements.forEach((mov, idx, arr) => {
+    mov > 0 ? deposit += mov : withdrawal += mov;
+  })
+  document.querySelector('.summary__value--in').innerHTML = `${deposit} €`;
+  document.querySelector('.summary__value--out').innerHTML = `${Math.abs(withdrawal)} €`;
+  const interestValue = ((deposit + withdrawal)*account1.interestRate/100).toFixed(2);
+  document.querySelector('.summary__value--interest').innerHTML =`${interestValue} €`;
+};
+summaryMovements(account1.movements);
 
 
 /////////////////////////////////////////////////
