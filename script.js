@@ -1,7 +1,5 @@
 'use strict';
 
-/////////////////////////////////////////////////
-/////////////////////////////////////////////////
 // BANKIST APP
 
 // Data
@@ -61,17 +59,16 @@ const inputLoanAmount = document.querySelector('.form__input--loan-amount');
 const inputCloseUsername = document.querySelector('.form__input--user');
 const inputClosePin = document.querySelector('.form__input--pin');
 
-// [200, 450, -400, 3000, -650, -130, 70, 1300],
 let sortToggle = true;
 const sortBy = function() {
   let newMov;
   if (sortToggle) {
-     newMov = account1.movements.slice().sort(function(a, b) {
+     newMov = accounts.at(0).movements.slice().sort(function(a, b) {
       return b - a;
     });
     sortToggle = false;
   } else {
-    newMov = account1.movements;
+    newMov = accounts.at(0).movements;
     sortToggle = true;
   }
 
@@ -96,7 +93,7 @@ const displayMovements = function(movements) {
 
     movementsType.classList.add(`movements__type--${selectDeWith(mov)}`);
     movementsType.innerHTML = `${idx + 1} ${selectDeWith(mov)}`;
-    movementsDate.innerHTML = `${new Date().getDate() - (idx + 1)} DAYS AGO`;
+    movementsDate.innerHTML = `${new Date().getDate()} DAYS AGO`;
     movementsValue.innerHTML = `${Math.abs(mov)} ${selectDeWith(mov)}`;
 
     movementsEl.appendChild(movementsRow);
@@ -107,9 +104,9 @@ const displayMovements = function(movements) {
   });
 };
 
-displayMovements(account1.movements);
+displayMovements(accounts.at(0).movements);
 
-const totalBalance = account1.movements.reduce((acc, curr) => acc + curr);
+const totalBalance = accounts.at(0).movements.reduce((acc, curr) => acc + curr);
 
 document.querySelector('.date').innerHTML = new Date().toLocaleDateString();
 document.querySelector('.balance__value').innerHTML =
@@ -126,10 +123,23 @@ const summaryMovements = function(movements) {
   const interestValue = ((deposit + withdrawal)*account1.interestRate/100).toFixed(2);
   document.querySelector('.summary__value--interest').innerHTML =`${interestValue} €`;
 };
-summaryMovements(account1.movements);
+summaryMovements(accounts.at(0).movements);
+
+//현재 시간 (sec)
+let currentSecond = 10;
+//타이머 변수
+let playTimer;
+
+setInterval(() => {
+  currentSecond = currentSecond - 1;
+  if(currentSecond === 0){
+    console.log('땡!');
+    clearInterval(playTimer);
+  }
+  console.log(currentSecond + '초 남았습니다');
+},1000)
 
 
-/////////////////////////////////////////////////
 /////////////////////////////////////////////////
 // LECTURES
 
