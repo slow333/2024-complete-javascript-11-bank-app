@@ -116,7 +116,7 @@ const displaySummary = function(acc) { // 마지막
     .reduce((acc, mov) => acc + mov, 0).toFixed(2);
   labelSumInterest.textContent = `${interestValue} €`;
 };
-const refreshDisplay = function(acc) {
+const updateUI = function(acc) {
   // display movements
   displayMovements(acc);
   // display balance
@@ -183,7 +183,7 @@ btnLogin.addEventListener('click', function(e) {
     inputLoginPin.value = inputLoginUsername.value = '';
     // inputLoginUsername.focus()
 
-    refreshDisplay(currentAccount);
+    updateUI(currentAccount);
     // set timer
     timer();
   } else {
@@ -204,7 +204,7 @@ btnTransfer.addEventListener('click', function(e) {
     transferTo.movements.push(Number(amount));
     inputTransferTo.value = '';
     inputTransferAmount.value = '';
-    refreshDisplay(currentAccount);
+    updateUI(currentAccount);
   }
 });
 
@@ -213,7 +213,7 @@ btnLoan.addEventListener('click', function(ev) {
 
   currentAccount.movements.push(Number(inputLoanAmount.value));
   inputLoanAmount.value = '';
-  refreshDisplay(currentAccount);
+  updateUI(currentAccount);
   inputLoanAmount.focus();
 });
 
