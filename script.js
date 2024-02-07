@@ -64,24 +64,22 @@ const inputClosePin = document.querySelector('.form__input--pin');
 // [200, 450, -400, 3000, -650, -130, 70, 1300],
 const clearMovementsRow = () => document.querySelectorAll('.movements__row')
   .forEach(v => v.remove());
+const clearBalanceAndSummary = () => {
+  labelBalance.textContent = '';
+  document.querySelectorAll('.summary__value').forEach(v =>
+  v.textContent = '');
+}
+// create username and created date
+const createUserName = function(accs) {
+  accs.forEach(function(acc) {
+    acc.username = acc.owner.toLowerCase().split(' ')
+      .map(n => n[0])
+      .join('');
+    acc.date = new Date();
+  });
+};
+createUserName(accounts);
 
-let sortToggle = true;
-btnSort.addEventListener('click', function() {
-  let newMov;
-  if (sortToggle) {
-    newMov = accounts[0].movements.slice().sort(function(a, b) {
-      return b - a;
-    });
-    sortToggle = false;
-  } else {
-    newMov = accounts[0].movements;
-    sortToggle = true;
-  }
-  clearMovementsRow();
-  // document.createElement('div').className ='movements';
-  const newAcc = { ...accounts[0], movements: newMov };
-  displayMovements(newAcc);
-});
 const displayMovements = function(acc) {
   // containerMovements.innerHTML = '';
   acc.movements.forEach(function(mov, idx) {
@@ -97,17 +95,6 @@ const displayMovements = function(acc) {
     containerMovements.insertAdjacentHTML('afterbegin', html);
   });
 };
-
-const createUserName = function(accs) {
-  accs.forEach(function(acc) {
-    acc.username = acc.owner.toLowerCase().split(' ')
-      .map(n => n[0])
-      .join('');
-    acc.date = new Date();
-  });
-};
-createUserName(accounts);
-console.log(accounts[0]);
 
 const displayBalance = function(acc) { // 마지막 것 출력
   const sum = acc.movements.reduce((acc, curr) => acc + curr);
@@ -140,12 +127,56 @@ const refreshDisplay = function(acc) {
   displayBalance(acc);
   // display summary
   displaySummary(acc);
-  // set timer
 };
+
+// sort by movements
+let sortToggle = true;
+btnSort.addEventListener('click', function() {
+  let newMov;
+  if (sortToggle) {
+    newMov = accounts[0].movements.slice().sort(function(a, b) {
+      return b - a;
+    });
+    sortToggle = false;
+  } else {
+    newMov = accounts[0].movements;
+    sortToggle = true;
+  }
+  clearMovementsRow();
+  // document.createElement('div').className ='movements';
+  const newAcc = { ...accounts[0], movements: newMov };
+  displayMovements(newAcc);
+});
+
+// set timer
+let currentSecond;
+let playTimer;
+const timer = function() {
+  currentSecond = 300;
+  playTimer = setInterval(() => {
+    currentSecond = currentSecond - 1;
+    const currType = currentSecond % 60 < 10 ? `0${currentSecond % 60}` : currentSecond % 60;
+
+    if (currentSecond < 0) {
+      containerApp.style.opacity = 0;
+      clearInterval(playTimer);
+      // clearMovementsRow();
+    } else {
+      labelTimer.textContent = `${Math.trunc(currentSecond / 60)}:${currType}`;
+    }
+  }, 1000);
+};
+
 //Event handler
 let currentAccount;
 btnLogin.addEventListener('click', function(e) {
   e.preventDefault();
+  if (currentAccount !== null) {
+    currentAccount = {}
+    clearInterval(playTimer);
+    currentSecond = 300;
+    clearMovementsRow();
+  }
   currentAccount = accounts.find(acc => acc.username === inputLoginUsername.value);
   console.log(currentAccount);
   if (currentAccount?.pin === Number(inputLoginPin.value)) {
@@ -165,67 +196,60 @@ btnLogin.addEventListener('click', function(e) {
   }
 });
 
-let currentSecond;
-let playTimer;
-const timer = function() {
-  currentSecond = 300;
-  playTimer = setInterval(() => {
-    currentSecond = currentSecond - 1;
-    const currType = currentSecond % 60 < 10 ? `0${currentSecond % 60}` : currentSecond % 60;
-
-    if (currentSecond < 0) {
-      containerApp.style.opacity = 0;
-      clearInterval(playTimer);
-      clearMovementsRow();
-    } else {
-      labelTimer.textContent = `${Math.trunc(currentSecond / 60)}:${currType}`;
-    }
-  }, 1000);
-};
-
-btnLogout.addEventListener('click', function() {
-  // containerApp.style.opacity = 0;
-  currentSecond = 300;
-  clearInterval(playTimer);
-  clearMovementsRow();
-});
+// transfer
 btnTransfer.addEventListener('click', function(e) {
   e.preventDefault();
   const transferTo = accounts.find(acc => acc.username === inputTransferTo.value);
   if (transferTo?.username) {
     currentAccount.movements.push(Number(inputTransferAmount.value) * -1);
     transferTo.movements.push(Number(inputTransferAmount.value));
+    inputTransferTo.value = '';
+    inputTransferAmount.value = '';
     refreshDisplay(currentAccount);
     alert('transfer complete !');
+    inputTransferTo.focus();
   }
 });
+
 btnLoan.addEventListener('click', function(ev) {
   ev.preventDefault();
   currentAccount.movements.push(Number(inputLoanAmount.value));
+  inputLoanAmount.value = '';
   refreshDisplay(currentAccount);
+  inputLoanAmount.focus();
 });
-btnClose.addEventListener('click', function(e) {
-  e.preventDefault();
-  if (inputCloseUsername.value === currentAccount.username && currentAccount.pin === Number(inputClosePin.value)) {
-    inputCloseUsername.value = '';
-    inputClosePin.value = '';
-    // containerApp.style.opacity = 0;
-    clearInterval(playTimer);
+
+// close
+btnClose.addEventListener('click', function() {
+  // e.preventDefault();
+  if (inputCloseUsername.value === currentAccount.username &&
+    currentAccount.pin === Number(inputClosePin.value)) {
     currentSecond = 300;
-    clearMovementsRow();
+    clearInterval(playTimer);
+    // containerApp.remove();
+    // clearMovementsRow();
+    // clearBalanceAndSummary();
+    // containerApp.style.display = 'none';
   } else {
     inputCloseUsername.value = '';
     inputClosePin.value = '';
   }
 });
+// logout
+btnLogout.addEventListener('click', function() {
+  currentSecond = 300;
+  clearInterval(playTimer);
+  // clearMovementsRow();
+  // containerApp.style.display = 'none';
+});
 // accounts.forEach(acc => console.log(acc));
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
 // LECTURES
-const movements = [200, 450, -400, 3000, -650, -130, 70, 1300];
-const max = movements.reduce((acc, mov) => acc > mov ? acc : mov, movements[0]);
+// const movements = [200, 450, -400, 3000, -650, -130, 70, 1300];
+// const max = movements.reduce((acc, mov) => acc > mov ? acc : mov, movements[0]);
 // find는 정확히 일치하는 내역을 찾으면 찾은 값이 속한 첫번째 한개의 객체를 돌려줌.
-const account = accounts.find(acc => acc.owner === 'Jessica Davis');
+// const account = accounts.find(acc => acc.owner === 'Jessica Davis');
 // console.log(account);
 // console.log(max);
 /*const currencies = new Map([
