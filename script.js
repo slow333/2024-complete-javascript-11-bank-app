@@ -1,13 +1,15 @@
 'use strict';
 
+/////////////////////////////////////////////////
+/////////////////////////////////////////////////
 // BANKIST APP
 
 // Data
 const account1 = {
-  owner: 'Woo Dong Jin Co.',
+  owner: 'Woo',
   movements: [200, 450, -400, 3000, -650, -130, 70, 1300],
   interestRate: 1.2, // %
-  pin: 1111
+  pin: 1
 };
 
 const account2 = {
@@ -30,7 +32,6 @@ const account4 = {
   interestRate: 1,
   pin: 4444
 };
-
 const accounts = [account1, account2, account3, account4];
 
 // Elements
@@ -46,6 +47,7 @@ const containerApp = document.querySelector('.app');
 const containerMovements = document.querySelector('.movements');
 
 const btnLogin = document.querySelector('.login__btn');
+const btnLogout = document.querySelector('.logout__btn');
 const btnTransfer = document.querySelector('.form__btn--transfer');
 const btnLoan = document.querySelector('.form__btn--loan');
 const btnClose = document.querySelector('.form__btn--close');
@@ -59,97 +61,180 @@ const inputLoanAmount = document.querySelector('.form__input--loan-amount');
 const inputCloseUsername = document.querySelector('.form__input--user');
 const inputClosePin = document.querySelector('.form__input--pin');
 
+// [200, 450, -400, 3000, -650, -130, 70, 1300],
+const clearMovementsRow = () => document.querySelectorAll('.movements__row')
+  .forEach(v => v.remove());
+
 let sortToggle = true;
-const sortBy = function() {
+btnSort.addEventListener('click', function() {
   let newMov;
   if (sortToggle) {
-     newMov = accounts.at(0).movements.slice().sort(function(a, b) {
+    newMov = accounts[0].movements.slice().sort(function(a, b) {
       return b - a;
     });
     sortToggle = false;
   } else {
-    newMov = accounts.at(0).movements;
+    newMov = accounts[0].movements;
     sortToggle = true;
   }
-
-  document.querySelectorAll('.movements__row')
-    .forEach( v => v.remove());
+  clearMovementsRow();
   // document.createElement('div').className ='movements';
-  displayMovements(newMov);
-}
-const displayMovements = function(movements) {
-  const movementsEl = document.querySelector('.movements');
-  const selectDeWith = (v) => v > 0 ? 'deposit' : 'withdrawal';
-
-  movements.forEach((mov, idx, arr) => {
-    const movementsRow = document.createElement('div');
-    movementsRow.className = 'movements__row';
-    const movementsType = document.createElement('div');
-    movementsType.className = 'movements__type';
-    const movementsValue = document.createElement('div');
-    movementsValue.className = 'movements__value';
-    const movementsDate = document.createElement('div');
-    movementsDate.className = 'movements__date';
-
-    movementsType.classList.add(`movements__type--${selectDeWith(mov)}`);
-    movementsType.innerHTML = `${idx + 1} ${selectDeWith(mov)}`;
-    movementsDate.innerHTML = `${new Date().getDate()} DAYS AGO`;
-    movementsValue.innerHTML = `${Math.abs(mov)} ${selectDeWith(mov)}`;
-
-    movementsEl.appendChild(movementsRow);
-
-    movementsRow.appendChild(movementsType);
-    movementsRow.appendChild(movementsDate);
-    movementsRow.appendChild(movementsValue);
+  const newAcc = { ...accounts[0], movements: newMov };
+  displayMovements(newAcc);
+});
+const displayMovements = function(acc) {
+  // containerMovements.innerHTML = '';
+  acc.movements.forEach(function(mov, idx) {
+    const type = mov > 0 ? 'deposit' : 'withdrawal';
+    const dateBefore = new Date().getMinutes() - acc.date.getMinutes();
+    const html = `
+     <div class="movements__row">
+       <div class="movements__type movements__type--${type}"> ${idx + 1} ${type}</div>
+       <div class="movements__date">${dateBefore} days before</div>
+       <div class="movements__value">${mov} €</div>
+     </div>
+    `;
+    containerMovements.insertAdjacentHTML('afterbegin', html);
   });
 };
 
-displayMovements(accounts.at(0).movements);
-
-const totalBalance = accounts.at(0).movements.reduce((acc, curr) => acc + curr);
-
-document.querySelector('.date').innerHTML = new Date().toLocaleDateString();
-document.querySelector('.balance__value').innerHTML =
-  `${totalBalance} €`;
-const summaryMovements = function(movements) {
-  const summaryValue = document.querySelector('.summary__value');
-  let deposit = 0;
-  let withdrawal = 0;
-  movements.forEach((mov, idx, arr) => {
-    mov > 0 ? deposit += mov : withdrawal += mov;
-  })
-  document.querySelector('.summary__value--in').innerHTML = `${deposit} €`;
-  document.querySelector('.summary__value--out').innerHTML = `${Math.abs(withdrawal)} €`;
-  const interestValue = ((deposit + withdrawal)*account1.interestRate/100).toFixed(2);
-  document.querySelector('.summary__value--interest').innerHTML =`${interestValue} €`;
+const createUserName = function(accs) {
+  accs.forEach(function(acc) {
+    acc.username = acc.owner.toLowerCase().split(' ')
+      .map(n => n[0])
+      .join('');
+    acc.date = new Date();
+  });
 };
-summaryMovements(accounts.at(0).movements);
+createUserName(accounts);
+console.log(accounts[0]);
 
-//현재 시간 (sec)
-let currentSecond = 10;
-//타이머 변수
-let playTimer;
+const displayBalance = function(acc) { // 마지막 것 출력
+  const sum = acc.movements.reduce((acc, curr) => acc + curr);
+  const dateString = new Date().toString();
+  labelDate.textContent = dateString.split(' ').slice(0,5).join(' ') + ' '+` ${acc.username}`;
+  labelBalance.textContent = `${sum} €`;
+};
 
-setInterval(() => {
-  currentSecond = currentSecond - 1;
-  if(currentSecond === 0){
-    console.log('땡!');
-    clearInterval(playTimer);
+const displaySummary = function(acc) { // 마지막
+  let deposit = acc.movements
+    .filter(mov => mov > 0)
+    .reduce((acc, curr) => acc + curr);
+  let withdrawal = acc.movements
+    .filter((mov) => mov < 0)
+    .reduce((acc, curr) => acc + curr, 0);
+  // acc.movements.forEach(mov => mov > 0 ? deposit += mov : withdrawal += mov);
+  labelSumIn.textContent = `${deposit} €`;
+  labelSumOut.textContent = `${Math.abs(withdrawal)} €`;
+  const interestValue = acc.movements
+    .filter(mov => mov > 0)
+    .map(deposit => deposit * acc.interestRate / 100)
+    .filter((int, i, arr) => int >= 1)
+    .reduce((acc, mov) => acc + mov, 0).toFixed(2);
+  labelSumInterest.textContent = `${interestValue} €`;
+};
+const refreshDisplay = function(acc) {
+  // display movements
+  displayMovements(acc);
+  // display balance
+  displayBalance(acc);
+  // display summary
+  displaySummary(acc);
+  // set timer
+};
+//Event handler
+let currentAccount;
+btnLogin.addEventListener('click', function(e) {
+  e.preventDefault();
+  currentAccount = accounts.find(acc => acc.username === inputLoginUsername.value);
+  console.log(currentAccount);
+  if (currentAccount?.pin === Number(inputLoginPin.value)) {
+    // display welcome
+    labelWelcome.textContent = `Welcome back, ${currentAccount.username}`;
+    containerApp.style.opacity = 100;
+    // Clear input fields
+    inputLoginPin.value = inputLoginUsername.value = '';
+    // inputLoginUsername.focus()
+
+    refreshDisplay(currentAccount);
+    // set timer
+    timer();
+  } else {
+    containerApp.style.opacity = 0;
+    alert('뭔가 안맞어요!!');
   }
-  console.log(currentSecond + '초 남았습니다');
-},1000)
+});
 
+let currentSecond;
+let playTimer;
+const timer = function() {
+  currentSecond = 300;
+  playTimer = setInterval(() => {
+    currentSecond = currentSecond - 1;
+    const currType = currentSecond % 60 < 10 ? `0${currentSecond % 60}` : currentSecond % 60;
 
+    if (currentSecond < 0) {
+      containerApp.style.opacity = 0;
+      clearInterval(playTimer);
+      clearMovementsRow();
+    } else {
+      labelTimer.textContent = `${Math.trunc(currentSecond / 60)}:${currType}`;
+    }
+  }, 1000);
+};
+
+btnLogout.addEventListener('click', function() {
+  // containerApp.style.opacity = 0;
+  currentSecond = 300;
+  clearInterval(playTimer);
+  clearMovementsRow();
+});
+btnTransfer.addEventListener('click', function(e) {
+  e.preventDefault();
+  const transferTo = accounts.find(acc => acc.username === inputTransferTo.value);
+  if (transferTo?.username) {
+    currentAccount.movements.push(Number(inputTransferAmount.value) * -1);
+    transferTo.movements.push(Number(inputTransferAmount.value));
+    refreshDisplay(currentAccount);
+    alert('transfer complete !');
+  }
+});
+btnLoan.addEventListener('click', function(ev) {
+  ev.preventDefault();
+  currentAccount.movements.push(Number(inputLoanAmount.value));
+  refreshDisplay(currentAccount);
+});
+btnClose.addEventListener('click', function(e) {
+  e.preventDefault();
+  if (inputCloseUsername.value === currentAccount.username && currentAccount.pin === Number(inputClosePin.value)) {
+    inputCloseUsername.value = '';
+    inputClosePin.value = '';
+    // containerApp.style.opacity = 0;
+    clearInterval(playTimer);
+    currentSecond = 300;
+    clearMovementsRow();
+  } else {
+    inputCloseUsername.value = '';
+    inputClosePin.value = '';
+  }
+});
+// accounts.forEach(acc => console.log(acc));
+/////////////////////////////////////////////////
 /////////////////////////////////////////////////
 // LECTURES
-
+const movements = [200, 450, -400, 3000, -650, -130, 70, 1300];
+const max = movements.reduce((acc, mov) => acc > mov ? acc : mov, movements[0]);
+// find는 정확히 일치하는 내역을 찾으면 찾은 값이 속한 첫번째 한개의 객체를 돌려줌.
+const account = accounts.find(acc => acc.owner === 'Jessica Davis');
+// console.log(account);
+// console.log(max);
 /*const currencies = new Map([
   ['USD', 'United States dollar'],
   ['EUR', 'Euro'],
   ['GBP', 'Pound sterling'],
 ]);
 
-const movements = [200, 450, -400, 3000, -650, -130, 70, 1300];*/
+*/
 
 // SLICE 는 원본을 유지
 /*let arr = ['a', 'b', 'c', 'd', 'e', 'f', 'z'];
@@ -195,4 +280,16 @@ const movements = [200, 450, -400, 3000, -650, -130, 70, 1300];*/
 //   else console.log(`You withdrew ${Math.abs(value)} : ${index +1}번째`)
 //   // console.log(arr.length)
 // })
+/*
+const mvUsd = [];
+for (const mov of movements) {
+  mvUsd.push(mov * eurToUsd)
+}
+console.log(mvUsd);*/
+// const movements = [200, 450, -400, 3000, -650, -130, 70, 1300];
+// const eurToUsd = 1.1;
+// const movementsUSD = movements.map(value => value * eurToUsd);
+// console.log(movementsUSD);
+
+//현재 시간 (sec)
 

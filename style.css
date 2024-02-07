@@ -66,13 +66,17 @@ nav {
   color: #bbb;
 }
 
-.login__btn {
+.login__btn, .logout__btn {
   border: none;
   background: none;
   font-size: 2.2rem;
   color: inherit;
   cursor: pointer;
   transition: all 0.3s;
+}
+.logout__btn {
+  font-size: 1.8rem;
+  color: #777;
 }
 
 .login__btn:hover,
@@ -94,7 +98,7 @@ nav {
   gap: 2rem;
 
   /* NOTE This creates the fade in/out anumation */
-  opacity: 1;
+  opacity: 0;
   transition: all 1s;
 }
 
