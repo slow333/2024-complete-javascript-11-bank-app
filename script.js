@@ -61,7 +61,6 @@ const inputLoanAmount = document.querySelector('.form__input--loan-amount');
 const inputCloseUsername = document.querySelector('.form__input--user');
 const inputClosePin = document.querySelector('.form__input--pin');
 
-// [200, 450, -400, 3000, -650, -130, 70, 1300],
 const clearMovementsRow = () => document.querySelectorAll('.movements__row')
   .forEach(v => v.remove());
 
@@ -99,7 +98,7 @@ const displayMovements = function(acc) {
   });
 };
 
-
+// display summary
 const displaySummary = function(acc) { // 마지막
   let deposit = acc.movements
     .filter(mov => mov > 0)
@@ -241,7 +240,7 @@ btnLogout.addEventListener('click', function() {
   // clearMovementsRow();
   // containerApp.style.display = 'none';
 });
-// accounts.forEach(acc => console.log(acc));
+
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
 // LECTURES
@@ -256,7 +255,6 @@ btnLogout.addEventListener('click', function() {
   ['EUR', 'Euro'],
   ['GBP', 'Pound sterling'],
 ]);
-
 */
 
 // SLICE 는 원본을 유지
@@ -279,7 +277,6 @@ console.log(months);
 
 months.splice(4, 1, 'May'); // index 4 교체
 // Replaces 1 element at index 4
-console.log(months);
 
 // console.log(months.reverse())
 // console.log(months);
@@ -297,7 +294,6 @@ console.log(months.at(-1));
 console.log('wookim'.at(-1));
 
 const movements = [200, 450, -400, 3000, -650, -130, 70, 1300];*/
-//
 // movements.forEach(function (value, index, arr) {
 //   if(value > 0) console.log(`You deposited ${value} : ${index +1}번째`);
 //   else console.log(`You withdrew ${Math.abs(value)} : ${index +1}번째`)
@@ -308,11 +304,7 @@ const mvUsd = [];
 for (const mov of movements) {
   mvUsd.push(mov * eurToUsd)
 }
-console.log(mvUsd);*/
-// const movements = [200, 450, -400, 3000, -650, -130, 70, 1300];
-// const eurToUsd = 1.1;
-// const movementsUSD = movements.map(value => value * eurToUsd);
-// console.log(movementsUSD);
-
-//현재 시간 (sec)
-
+const movements = [200, 450, -400, 3000, -650, -130, 70, 1300];
+const eurToUsd = 1.1;
+const movementsUSD = movements.map(value => value * eurToUsd);
+*/
