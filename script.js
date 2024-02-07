@@ -64,11 +64,7 @@ const inputClosePin = document.querySelector('.form__input--pin');
 // [200, 450, -400, 3000, -650, -130, 70, 1300],
 const clearMovementsRow = () => document.querySelectorAll('.movements__row')
   .forEach(v => v.remove());
-const clearBalanceAndSummary = () => {
-  labelBalance.textContent = '';
-  document.querySelectorAll('.summary__value').forEach(v =>
-  v.textContent = '');
-}
+
 // create username and created date
 const createUserName = function(accs) {
   accs.forEach(function(acc) {
@@ -79,6 +75,13 @@ const createUserName = function(accs) {
   });
 };
 createUserName(accounts);
+
+const displayBalance = function(acc) {
+  acc.balance = acc.movements.reduce((acc, curr) => acc + curr);
+  const dateString = new Date().toString();
+  labelDate.textContent = dateString.split(' ').slice(0, 5).join(' ') + ' ' + ` ${acc.username}`;
+  labelBalance.textContent = `${acc.balance} €`;
+};
 
 const displayMovements = function(acc) {
   // containerMovements.innerHTML = '';
@@ -96,12 +99,6 @@ const displayMovements = function(acc) {
   });
 };
 
-const displayBalance = function(acc) { // 마지막 것 출력
-  const sum = acc.movements.reduce((acc, curr) => acc + curr);
-  const dateString = new Date().toString();
-  labelDate.textContent = dateString.split(' ').slice(0,5).join(' ') + ' '+` ${acc.username}`;
-  labelBalance.textContent = `${sum} €`;
-};
 
 const displaySummary = function(acc) { // 마지막
   let deposit = acc.movements
@@ -172,7 +169,7 @@ let currentAccount;
 btnLogin.addEventListener('click', function(e) {
   e.preventDefault();
   if (currentAccount !== null) {
-    currentAccount = {}
+    currentAccount = {};
     clearInterval(playTimer);
     currentSecond = 300;
     clearMovementsRow();
@@ -200,19 +197,21 @@ btnLogin.addEventListener('click', function(e) {
 btnTransfer.addEventListener('click', function(e) {
   e.preventDefault();
   const transferTo = accounts.find(acc => acc.username === inputTransferTo.value);
-  if (transferTo?.username) {
-    currentAccount.movements.push(Number(inputTransferAmount.value) * -1);
-    transferTo.movements.push(Number(inputTransferAmount.value));
+  const amount = Number(inputTransferAmount.value);
+  if (transferTo?.username &&
+    amount <= currentAccount.balance &&
+    transferTo.username !== currentAccount.username) {
+    currentAccount.movements.push(amount * -1);
+    transferTo.movements.push(Number(amount));
     inputTransferTo.value = '';
     inputTransferAmount.value = '';
     refreshDisplay(currentAccount);
-    alert('transfer complete !');
-    inputTransferTo.focus();
   }
 });
 
 btnLoan.addEventListener('click', function(ev) {
   ev.preventDefault();
+
   currentAccount.movements.push(Number(inputLoanAmount.value));
   inputLoanAmount.value = '';
   refreshDisplay(currentAccount);
