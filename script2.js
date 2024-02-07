@@ -6,10 +6,10 @@
 
 // Data
 const account1 = {
-  owner: 'Woo',
+  owner: 'Woo Dong Jin Co.',
   movements: [200, 450, -400, 3000, -650, -130, 70, 1300],
   interestRate: 1.2, // %
-  pin: 1
+  pin: 1111
 };
 
 const account2 = {
@@ -66,114 +66,80 @@ let sortToggle = true;
 const sortBy = function() {
   let newMov;
   if (sortToggle) {
-    newMov = accounts[0].movements.slice().sort(function(a, b) {
+     newMov = account1.movements.slice().sort(function(a, b) {
       return b - a;
     });
     sortToggle = false;
   } else {
-    newMov = accounts[0].movements;
+    newMov = account1.movements;
     sortToggle = true;
   }
 
   document.querySelectorAll('.movements__row')
-    .forEach(v => v.remove());
+    .forEach( v => v.remove());
   // document.createElement('div').className ='movements';
-  const newAcc = { ...accounts[0], movements: newMov };
-  displayMovements(newAcc);
-};
-const displayMovements = function(acc) {
-  // containerMovements.innerHTML = '';
-  acc.movements.forEach(function(mov, idx) {
-    const type = mov > 0 ? 'deposit' : 'withdrawal';
-    const html = `
-     <div class="movements__row">
-       <div class="movements__type movements__type--${type}"> ${idx + 1} ${type}</div>
-       <div class="movements__date">3 days before</div>
-       <div class="movements__value">${mov} €</div>
-     </div>
-    `;
-    containerMovements.insertAdjacentHTML('afterbegin', html);
+  displayMovements(newMov);
+}
+const displayMovements = function(movements) {
+  const movementsEl = document.querySelector('.movements');
+  const selectDeWith = (v) => v > 0 ? 'deposit' : 'withdrawal';
+
+  movements.forEach((mov, idx, arr) => {
+    const movementsRow = document.createElement('div');
+    movementsRow.className = 'movements__row';
+    const movementsType = document.createElement('div');
+    movementsType.className = 'movements__type';
+    const movementsValue = document.createElement('div');
+    movementsValue.className = 'movements__value';
+    const movementsDate = document.createElement('div');
+    movementsDate.className = 'movements__date';
+
+    movementsType.classList.add(`movements__type--${selectDeWith(mov)}`);
+    movementsType.innerHTML = `${idx + 1} ${selectDeWith(mov)}`;
+    movementsDate.innerHTML = `${new Date().getDate() - (idx + 1)} DAYS AGO`;
+    movementsValue.innerHTML = `${Math.abs(mov)} ${selectDeWith(mov)}`;
+
+    movementsEl.appendChild(movementsRow);
+
+    movementsRow.appendChild(movementsType);
+    movementsRow.appendChild(movementsDate);
+    movementsRow.appendChild(movementsValue);
   });
 };
 
-const createUserName = function(accs) {
-  accs.forEach(function(acc) {
-    acc.username = acc.owner.toLowerCase().split(' ')
-      .map(n => n[0])
-      .join('');
-  });
+displayMovements(account1.movements);
+
+const totalBalance = account1.movements.reduce((acc, curr) => acc + curr);
+
+document.querySelector('.date').innerHTML = new Date().toLocaleDateString();
+document.querySelector('.balance__value').innerHTML =
+  `${totalBalance} €`;
+const summaryMovements = function(movements) {
+  const summaryValue = document.querySelector('.summary__value');
+  let deposit = 0;
+  let withdrawal = 0;
+  movements.forEach((mov, idx, arr) => {
+    mov > 0 ? deposit += mov : withdrawal += mov;
+  })
+  document.querySelector('.summary__value--in').innerHTML = `${deposit} €`;
+  document.querySelector('.summary__value--out').innerHTML = `${Math.abs(withdrawal)} €`;
+  const interestValue = ((deposit + withdrawal)*account1.interestRate/100).toFixed(2);
+  document.querySelector('.summary__value--interest').innerHTML =`${interestValue} €`;
 };
-createUserName(accounts);
-
-const displayBalance = function(acc) { // 마지막 것 출력
-  const sum = acc.movements.reduce((acc, curr) => acc + curr);
-  labelDate.textContent = new Date().toLocaleDateString() + `${acc.username}`;
-  labelBalance.textContent = `${sum} €`;
-};
+summaryMovements(account1.movements);
 
 
-const displaySummary = function(acc) { // 마지막
-  let deposit = acc.movements
-    .filter(mov => mov > 0)
-    .reduce((acc, curr) => acc + curr);
-  let withdrawal = acc.movements
-    .filter((mov) => mov < 0)
-    .reduce((acc, curr) => acc + curr, 0);
-  // acc.movements.forEach(mov => mov > 0 ? deposit += mov : withdrawal += mov);
-  labelSumIn.textContent = `${deposit} €`;
-  labelSumOut.textContent = `${Math.abs(withdrawal)} €`;
-  const interestValue = acc.movements
-    .filter(mov => mov > 0)
-    .map(deposit => deposit * acc.interestRate / 100)
-    .filter((int, i, arr) => int >= 1)
-    .reduce((acc, mov) => acc + mov, 0).toFixed(2);
-  labelSumInterest.textContent = `${interestValue} €`;
-};
-
-//Event handler
-let currentAccount;
-btnLogin.addEventListener('click', function(e) {
-  e.preventDefault();
-  currentAccount = accounts.find(acc => acc.username === inputLoginUsername.value);
-  console.log(currentAccount);
-  if (currentAccount?.pin === Number(inputLoginPin.value)) {
-    // display welcome
-    labelWelcome.textContent = `Welcome back, ${currentAccount.owner.split(' ')[0]}`;
-    containerApp.style.opacity = 100;
-
-    // Clear input fields
-    inputLoginPin.value = inputLoginUsername.value = '';
-    inputLoginUsername.focus()
-    // display movements
-    displayMovements(currentAccount);
-    // display balance
-    displayBalance(currentAccount);
-    // display summary
-    displaySummary(currentAccount);
-
-  } else {
-    containerApp.style.opacity = 0;
-    alert('뭔가 안맞어요!!');
-  }
-});
-
-// accounts.forEach(acc => console.log(acc));
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
 // LECTURES
-const movements = [200, 450, -400, 3000, -650, -130, 70, 1300];
-const max = movements.reduce((acc, mov) => acc > mov ? acc : mov, movements[0]);
-// find는 정확히 일치하는 내역을 찾으면 찾은 값이 속한 첫번째 한개의 객체를 돌려줌.
-const account = accounts.find(acc => acc.owner === 'Jessica Davis');
-// console.log(account);
-// console.log(max);
+
 /*const currencies = new Map([
   ['USD', 'United States dollar'],
   ['EUR', 'Euro'],
   ['GBP', 'Pound sterling'],
 ]);
 
-*/
+const movements = [200, 450, -400, 3000, -650, -130, 70, 1300];*/
 
 // SLICE 는 원본을 유지
 /*let arr = ['a', 'b', 'c', 'd', 'e', 'f', 'z'];
@@ -219,14 +185,4 @@ const movements = [200, 450, -400, 3000, -650, -130, 70, 1300];*/
 //   else console.log(`You withdrew ${Math.abs(value)} : ${index +1}번째`)
 //   // console.log(arr.length)
 // })
-/*
-const mvUsd = [];
-for (const mov of movements) {
-  mvUsd.push(mov * eurToUsd)
-}
-console.log(mvUsd);*/
-// const movements = [200, 450, -400, 3000, -650, -130, 70, 1300];
-// const eurToUsd = 1.1;
-// const movementsUSD = movements.map(value => value * eurToUsd);
-// console.log(movementsUSD);
 
