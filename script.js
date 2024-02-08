@@ -234,9 +234,12 @@ btnClose.addEventListener('click', function(e) {
   }
 });
 // logout
-btnLogout.addEventListener('click', () => {
+btnLogout.addEventListener('click', (e) => {
+  e.preventDefault();
+  containerMovements.innerHTML = '';
   currentSecond = 300;
   clearInterval(playTimer);
+  containerApp.style.opacity = '0';
 });
 
 
