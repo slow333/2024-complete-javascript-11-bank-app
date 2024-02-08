@@ -79,9 +79,10 @@ const displayBalance = function(acc) {
   labelBalance.textContent = `${acc.balance} €`;
 };
 
-const displayMovements = function(acc) {
+const displayMovements = function(acc, sort = false) {
   containerMovements.innerHTML = ''; // 먼저 초기화하는 과정
-  acc.movements.forEach(function(mov, idx) {
+  const mvs = sort ? acc.movements.slice().sort((a,b) => a -b) : acc.movements;
+  mvs.forEach(function(mov, idx) {
     const type = mov > 0 ? 'deposit' : 'withdrawal';
     const dateBefore = new Date().getMinutes() - acc.date.getMinutes();
     const html = `
@@ -124,25 +125,31 @@ const updateUI = function(acc) {
 };
 
 // sort by movements
-let sortToggle = true;
+let sortToggle = false;
+/*
 btnSort.addEventListener('click', function() {
   let newMov;
   if (sortToggle) {
     newMov = currentAccount.movements.slice().sort(function(a, b) {
       return b - a;
     });
-    sortToggle = false;
   } else {
     newMov = currentAccount.movements;
-    sortToggle = true;
   }
-  document.querySelectorAll('.movements__row')
-    .forEach(v => v.remove());
+  sortToggle = !sortToggle;
+  containerMovements.innerHTML = ''; // 먼저 초기화하는 과정
+  //
+  // document.querySelectorAll('.movements__row')
+  //   .forEach(v => v.remove());
 
   const newAcc = { ...currentAccount, movements: newMov };
   displayMovements(newAcc);
+});*/
+btnSort.addEventListener('click', function(e) {
+  e.preventDefault();
+  displayMovements(currentAccount, !sortToggle);
+  sortToggle = !sortToggle;
 });
-
 // set timer
 let currentSecond;
 let playTimer;
@@ -208,11 +215,13 @@ btnTransfer.addEventListener('click', function(e) {
 
 btnLoan.addEventListener('click', function(ev) {
   ev.preventDefault();
-
-  currentAccount.movements.push(Number(inputLoanAmount.value));
+  const amount = Number(inputLoanAmount.value);
+  if (amount > 0 && currentAccount.movements.some(mov => mov >= amount * 0.1)) {
+    currentAccount.movements.push(Number(amount));
+    updateUI(currentAccount);
+    inputLoanAmount.focus();
+  }
   inputLoanAmount.value = '';
-  updateUI(currentAccount);
-  inputLoanAmount.focus();
 });
 
 // close
@@ -248,6 +257,34 @@ btnLogout.addEventListener('click', (e) => {
 // LECTURES
 const movements = [200, 450, -400, 3000, -650, -130, 70, 1300];
 // find index
+const findedIdx = movements.findIndex(mov => mov === -130);
+console.log(findedIdx);
+console.log(movements.includes(200));
+// 조건 검색
+console.log(movements.some(mve => mve > 300));
+// 모든 요소가 만족하면 true
+console.log(account4.movements.every(mov => mov > 0));
+//flat
+const arr = [1, [[2, 3], 4, 5], 6, 7, [8, 9]];
+console.log(arr.flat(2));
+console.log(arr.flat());
+const accountMvs = accounts.map(ac => ac.movements);
+// console.log(accountMvs);
+const allMvs = accountMvs.flat();
+// console.log(allMvs);
+// const overallBalance = allMvs.reduce((a, c) => a + c);
+const overallBalance = accounts
+  .map(m => m.movements)
+  .flat()
+  .reduce((a, c) =>  a + c);
+console.log(overallBalance);
+// flatMap
+const overallBalance2 = accounts
+  .flatMap(m => m.movements)
+  .reduce((a, c) =>  a + c);
+console.log(overallBalance2);
+console.log(movements.sort());
+console.log(movements.sort((a, b) => a -b));
 
 // const max = movements.reduce((acc, mov) => acc > mov ? acc : mov, movements[0]);
 // find는 정확히 일치하는 내역을 찾으면 찾은 값이 속한 첫번째 한개의 객체를 돌려줌.
