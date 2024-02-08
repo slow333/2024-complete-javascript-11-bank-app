@@ -61,9 +61,6 @@ const inputLoanAmount = document.querySelector('.form__input--loan-amount');
 const inputCloseUsername = document.querySelector('.form__input--user');
 const inputClosePin = document.querySelector('.form__input--pin');
 
-const clearMovementsRow = () => document.querySelectorAll('.movements__row')
-  .forEach(v => v.remove());
-
 // create username and created date
 const createUserName = function(accs) {
   accs.forEach(function(acc) {
@@ -83,7 +80,7 @@ const displayBalance = function(acc) {
 };
 
 const displayMovements = function(acc) {
-  // containerMovements.innerHTML = '';
+  containerMovements.innerHTML = ''; // 먼저 초기화하는 과정
   acc.movements.forEach(function(mov, idx) {
     const type = mov > 0 ? 'deposit' : 'withdrawal';
     const dateBefore = new Date().getMinutes() - acc.date.getMinutes();
@@ -116,6 +113,7 @@ const displaySummary = function(acc) { // 마지막
     .reduce((acc, mov) => acc + mov, 0).toFixed(2);
   labelSumInterest.textContent = `${interestValue} €`;
 };
+// update UI
 const updateUI = function(acc) {
   // display movements
   displayMovements(acc);
@@ -130,17 +128,18 @@ let sortToggle = true;
 btnSort.addEventListener('click', function() {
   let newMov;
   if (sortToggle) {
-    newMov = accounts[0].movements.slice().sort(function(a, b) {
+    newMov = currentAccount.movements.slice().sort(function(a, b) {
       return b - a;
     });
     sortToggle = false;
   } else {
-    newMov = accounts[0].movements;
+    newMov = currentAccount.movements;
     sortToggle = true;
   }
-  clearMovementsRow();
-  // document.createElement('div').className ='movements';
-  const newAcc = { ...accounts[0], movements: newMov };
+  document.querySelectorAll('.movements__row')
+    .forEach(v => v.remove());
+
+  const newAcc = { ...currentAccount, movements: newMov };
   displayMovements(newAcc);
 });
 
@@ -168,13 +167,13 @@ let currentAccount;
 btnLogin.addEventListener('click', function(e) {
   e.preventDefault();
   if (currentAccount !== null) {
-    currentAccount = {};
+    // currentAccount = {};
     clearInterval(playTimer);
     currentSecond = 300;
-    clearMovementsRow();
+    document.querySelectorAll('.movements__row')
+      .forEach(v => v.remove());
   }
   currentAccount = accounts.find(acc => acc.username === inputLoginUsername.value);
-  console.log(currentAccount);
   if (currentAccount?.pin === Number(inputLoginPin.value)) {
     // display welcome
     labelWelcome.textContent = `Welcome back, ${currentAccount.username}`;
@@ -184,7 +183,6 @@ btnLogin.addEventListener('click', function(e) {
     // inputLoginUsername.focus()
 
     updateUI(currentAccount);
-    // set timer
     timer();
   } else {
     containerApp.style.opacity = 0;
