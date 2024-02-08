@@ -198,7 +198,7 @@ btnTransfer.addEventListener('click', function(e) {
   if (transferTo?.username &&
     amount <= currentAccount.balance &&
     transferTo.username !== currentAccount.username) {
-    currentAccount.movements.push(amount * -1);
+    currentAccount.movements.push(-amount);
     transferTo.movements.push(Number(amount));
     inputTransferTo.value = '';
     inputTransferAmount.value = '';
@@ -216,33 +216,36 @@ btnLoan.addEventListener('click', function(ev) {
 });
 
 // close
-btnClose.addEventListener('click', function() {
-  // e.preventDefault();
+btnClose.addEventListener('click', function(e) {
+  e.preventDefault();
   if (inputCloseUsername.value === currentAccount.username &&
     currentAccount.pin === Number(inputClosePin.value)) {
-    currentSecond = 300;
-    clearInterval(playTimer);
-    // containerApp.remove();
-    // clearMovementsRow();
-    // clearBalanceAndSummary();
-    // containerApp.style.display = 'none';
+    const accIndex = accounts.findIndex(acc => acc.username === inputCloseUsername.value);
+    const confirm = prompt('This will delete your account !!!!!!!!!(yes, no)');
+    if (confirm.toLowerCase() === 'yes') {
+      inputCloseUsername.value = inputClosePin.value = '';
+      accounts.splice(accIndex, 1);
+      containerMovements.innerHTML = '';
+      containerApp.style.opacity = '0';
+    }
   } else {
-    inputCloseUsername.value = '';
-    inputClosePin.value = '';
+    alert('Wrong id, password 💥');
+    inputCloseUsername.value = inputClosePin.value = '';
   }
 });
 // logout
-btnLogout.addEventListener('click', function() {
+btnLogout.addEventListener('click', () => {
   currentSecond = 300;
   clearInterval(playTimer);
-  // clearMovementsRow();
-  // containerApp.style.display = 'none';
 });
+
 
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
 // LECTURES
-// const movements = [200, 450, -400, 3000, -650, -130, 70, 1300];
+const movements = [200, 450, -400, 3000, -650, -130, 70, 1300];
+// find index
+
 // const max = movements.reduce((acc, mov) => acc > mov ? acc : mov, movements[0]);
 // find는 정확히 일치하는 내역을 찾으면 찾은 값이 속한 첫번째 한개의 객체를 돌려줌.
 // const account = accounts.find(acc => acc.owner === 'Jessica Davis');
